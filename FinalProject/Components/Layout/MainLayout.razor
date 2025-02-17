@@ -1,0 +1,59 @@
+﻿@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedLocalStorage BrowserStorage
+
+<HeadContent>
+    @if (isDarkMode) {
+            <link rel="stylesheet" href="DarkMode.css"/>
+        }
+</HeadContent>
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="darkSwitch" checked="@isDarkMode" @onchange="OnCheckboxChange">
+                <label class="form-check-label" for="darkSwitch">Dark Mode</label>
+            </div>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+@code {
+    private bool isDarkMode = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        await InitializeTheme();
+        StateHasChanged();
+    }
+
+    //Initial call to fetch theme data from storage
+    private async Task InitializeTheme() {
+        var result = await BrowserStorage.GetAsync<bool>("Dark-Mode");
+        if (result.Success) {
+            isDarkMode = result.Value;
+        }
+        await Task.CompletedTask;
+    }
+
+    private async Task OnCheckboxChange(ChangeEventArgs e) {
+        if (e.Value != null) {
+            isDarkMode = (bool)e.Value;
+            await BrowserStorage.SetAsync("Dark-Mode", isDarkMode);
+        }
+    }
+}

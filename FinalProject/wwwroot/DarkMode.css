@@ -1,0 +1,34 @@
+:root {
+    --bs-body-bg: #303030;
+    --bs-body-color: #fff;
+}
+
+.top-row {
+    background-color: black !important;
+}
+
+.sidebar {
+    background-image: linear-gradient(180deg, rgb(0,0,0) 0%, #303030 70%) !important;
+    border-right: 1px solid white;
+}
+
+.button {
+    background-color:#505050;
+    border: none;
+    color: white;
+    text-align: center;
+    padding: 4px 16px;
+    border-radius: 4px;
+    transition-duration: 0.4s;
+}
+
+.button:hover {
+    background-color: #606060;
+    color: white;
+}
+
+.striped-table {
+    tr:nth-child(odd) {
+        background-color: #303030;
+    }
+}

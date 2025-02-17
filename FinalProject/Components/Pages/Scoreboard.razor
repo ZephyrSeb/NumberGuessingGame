@@ -1,0 +1,77 @@
+@page "/scoreboard"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using Jinget.Blazor
+@using Jinget.Core.ExtensionMethods
+@inject ProtectedLocalStorage BrowserStorage
+
+<PageTitle>Scoreboard</PageTitle>
+
+<table style="float:right;">
+    <tr>
+        <td><button class="button" @onclick='() => ModeChanged("Scoreboard-Normal")'>Normal Mode</button></td>
+        <td><button class="button" @onclick='() => ModeChanged("Scoreboard-Hard")'>Hard Mode</button></td>
+    </tr>
+</table>
+
+<table style="width:100%">
+    <colgroup>
+        <col span="1" style="width:75%;">
+        <col span="1" style="width:75%;">
+    </colgroup>
+    <tr>
+        <td><h1>Scoreboard</h1></td>
+        <td><button class="button" @onclick="ScoreboardReset">Reset Scoreboard</button></td>
+    </tr>
+</table>
+
+
+<table class="striped-table" style="width:100%;">
+    <colgroup>
+        <col style="width:50%;">
+        <col style="width:50%;">
+    </colgroup>
+    <tr>
+        <td>Score</td>
+        <td>Date</td>
+    </tr>
+    @foreach(var item in scoreDict) {
+        <tr>
+            <td>@item.Value</td>
+            <td>@item.Key.ToString()</td>
+        </tr>
+    }
+</table>
+
+@code {
+    Dictionary<DateTime, int> scoreDict = new Dictionary<DateTime, int>();
+
+    string mode = "Scoreboard-Normal";
+
+    //Updates the page when a button is pressed to change which scoreboard is being looked at
+    private async Task ModeChanged(string e) {
+        mode = e;
+        await InitializeScores();
+    }
+
+    //Re-renders the screen
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        await InitializeScores();
+        StateHasChanged();
+    }
+
+    //Initial call to fetch score data from storage
+    private async Task InitializeScores() {
+        var result = await BrowserStorage.GetAsync<Score>(mode);
+        if (result.Success) {
+            scoreDict = FPMath.Sort(result.Value.scores);
+        }
+        await Task.CompletedTask;
+    }
+
+    //Deletes all score data for the selected mode from storage and refreshes the screen
+    private async Task ScoreboardReset() {
+        await BrowserStorage.DeleteAsync(mode);
+        StateHasChanged();
+    }
+}

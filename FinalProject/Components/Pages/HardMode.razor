@@ -1,0 +1,88 @@
+@page "/hardmode"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedLocalStorage BrowserStorage
+
+<PageTitle>Guess the Number</PageTitle>
+
+<h1>Guess the Number (Hard Mode)</h1>
+
+<table style="width:100">
+    <colgroup>
+        <col span="1" style="width:60%;">
+        <col span="1" style="width:20%;">
+        <col span="1" style="width:20%;">
+    </colgroup>
+    <tr>
+        <td colspan="3">I'm thinking of a number beetween 1 and 1000. Can you guess it?</td>
+    </tr>
+    <tr>
+        <td><input value="@currentGuess" type="number" @oninput="HandleInput" @onkeypress="KeyPress"></td>
+        <td><button class="button" @onclick="SubmitGuess">Submit</button></td>
+        <td><button class="button" @onclick="RestartGame">Restart</button></td>
+    </tr>
+    <tr>
+        <td colspan="2">@guessString</td>
+        <td>Guesses left: @game.guessCount</td>
+    </tr>
+    <tr>
+        <td colspan="2"></td>
+        <td>Current Win Streak: @game.winStreak</td>
+    </tr>
+    <tr>
+        <td colspan="3">Guesses: @guessList</td>
+    </tr>
+</table>
+
+@code {
+    string guessString = "";
+    string currentGuess = "";
+    Game game = new Game(1000, 12);
+    string guessList = "";
+
+    //Loads the game on page load
+    protected override async Task OnInitializedAsync() {
+        await StartGame();
+    }
+
+    public Task StartGame() {
+        guessString = "";
+        currentGuess = "";
+        return Task.CompletedTask;
+    }
+
+    public void HandleInput(ChangeEventArgs e) {
+        currentGuess = (string)e.Value!;
+    }
+
+    //Submits a guess when the enter key is pressed
+    public void KeyPress(KeyboardEventArgs e) {
+        if (e.Key == "Enter") {
+            SubmitGuess();
+            StateHasChanged();
+        }
+    }
+
+    //Determines whether the submitted guess is a valid input
+    public void SubmitGuess() {
+        if (currentGuess != "") {
+            double attempt = double.Parse(currentGuess);
+            if (attempt % 1 == 0 && attempt >= 1 && attempt <= 1000) {
+                guessString = game.SubmitGuess(BrowserStorage, int.Parse(currentGuess), "Scoreboard-Hard");
+                if (guessList == "") guessList = currentGuess;
+                else guessList += ", " + currentGuess;
+            }
+            else guessString = "Please input an integer between 1 and 100.";
+        }
+        else guessString = "Please input a number.";
+        currentGuess = "";
+    }
+
+    //Resets the game; if a game is in progress it will also reset the win streak
+    public void RestartGame() {
+        game.ResetGame(BrowserStorage, "Scoreboard-Hard");
+        guessString = "";
+        currentGuess = "";
+        guessList = "";
+    }
+}
